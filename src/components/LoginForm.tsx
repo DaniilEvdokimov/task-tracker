@@ -10,6 +10,10 @@ import axios, {AxiosError} from "axios";
 import {useMutation} from "@tanstack/react-query";
 import {Dispatcher} from "undici-types";
 import ResponseData = Dispatcher.ResponseData;
+import { FormEvent } from 'react'
+import { signIn } from "next-auth/react"
+
+
 
 export default function LoginForm() {
 	const {
@@ -23,14 +27,18 @@ export default function LoginForm() {
 	});
 
 	const {isPending, isError, isSuccess, error, mutate} = useMutation<ResponseData, AxiosError<{ error: string }>>({
-		mutationFn: (data: TloginSchema) => {
-			return axios.post('/api/auth/login', data);
-		}
+		// mutationFn: (data: TloginSchema) => {
+		// 	return axios.post('/api/auth/login', data);
+		// }
 	});
 
 	function onSumbit(data: TloginSchema ) {
-		mutate(data);
+		signIn('credentials', data);
 		reset();
+	}
+
+	if (isSuccess) {
+
 	}
 
 	return (

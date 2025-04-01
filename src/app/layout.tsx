@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { QueryProvider } from "@/providers/QueryProvider";
-import AuthProvider from "@/providers/AuthProvider";
 import { Inter, Roboto } from 'next/font/google';
 
 const inter = Inter({
@@ -31,9 +30,7 @@ export default async function RootLayout({
         className={`${inter.className} antialiased m-auto`}
       >
       <QueryProvider>
-        <AuthProvider>
             {children}
-        </AuthProvider>
       </QueryProvider>
       </body>
     </html>

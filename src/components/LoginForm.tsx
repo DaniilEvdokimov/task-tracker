@@ -1,3 +1,5 @@
+'use client';
+
 import {Button, Input} from "@headlessui/react";
 import Link from "next/link";
 import clsx from 'clsx';
@@ -8,7 +10,6 @@ import axios, {AxiosError} from "axios";
 import {useMutation} from "@tanstack/react-query";
 import {Dispatcher} from "undici-types";
 import ResponseData = Dispatcher.ResponseData;
-import {useRouter} from "next/navigation";
 
 export default function LoginForm() {
 	const {

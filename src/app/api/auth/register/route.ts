@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcrypt";
-import { registerSchema } from "@/schemas/auth/register/register";
+import { registerSchema } from "@/schemas/auth/registerSchema";
 import {ZodError} from "zod";
 
 

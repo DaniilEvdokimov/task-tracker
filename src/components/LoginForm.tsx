@@ -6,39 +6,42 @@ import clsx from 'clsx';
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {loginSchema, TloginSchema} from "@/schemas/auth/loginSchema";
-import axios, {AxiosError} from "axios";
 import {useMutation} from "@tanstack/react-query";
-import {Dispatcher} from "undici-types";
-import ResponseData = Dispatcher.ResponseData;
-import { FormEvent } from 'react'
 import { signIn } from "next-auth/react"
-
-
+import {useRouter} from "next/navigation";
 
 export default function LoginForm() {
+	const router = useRouter();
+
 	const {
 		register,
 		handleSubmit,
 		formState: { errors },
 		reset,
-	} = useForm({
-		resolver: zodResolver(loginSchema),
+	} = useForm({resolver: zodResolver(loginSchema),});
 
+	// @ts-ignore
+	const mutation = useMutation({
+		mutationFn: async(data: TloginSchema) => {
+			const result = await signIn("credentials", {
+				...data,
+				redirect: false,
+			});
+
+			if (result?.error) {
+				throw new Error(result.error);
+			}
+
+			return result;
+		},
+		onSuccess: () => {
+			router.push("/");
+			reset();
+		}
 	});
 
-	const {isPending, isError, isSuccess, error, mutate} = useMutation<ResponseData, AxiosError<{ error: string }>>({
-		// mutationFn: (data: TloginSchema) => {
-		// 	return axios.post('/api/auth/login', data);
-		// }
-	});
-
-	function onSumbit(data: TloginSchema ) {
-		signIn('credentials', data);
-		reset();
-	}
-
-	if (isSuccess) {
-
+	async function onSumbit(data: TloginSchema ) {
+		mutation.mutate(data);
 	}
 
 	return (
@@ -76,7 +79,7 @@ export default function LoginForm() {
 							}
 						)}
 					/>
-					{isError? <span className='text-red-500'>{error.response?.data?.error || 'ошибка'}</span> : null}
+					{mutation.error?.message === 'CredentialsSignin' && <span className="text-red-500">{'Неправильный e-mail/логин или пароль'}</span>}
 					<Link href='/forgot-password' className='self-end text-base mt-1  text-gray-500 hover:text-blue-500'>
 						забыли пароль?
 					</Link>
@@ -85,7 +88,7 @@ export default function LoginForm() {
 			<Button type='submit' className='text-white bg-blue-500 text-[14px] rounded-sm  py-2 w-full transition-colors
 			  duration-75 ease-in-out  outline-none hover:bg-blue-600 cursor-pointer'
 			>
-				{isPending ? 'Вход...' : 'Войти' }
+				{mutation.isPending ? 'Вход...' : 'Войти' }
 			</Button>
 		</form>
 	)

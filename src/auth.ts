@@ -1,28 +1,9 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
-// Your own logic for dealing with plaintext password strings; be careful!
-
-import prisma from "@/lib/prisma";
+import bcrypt from "bcryptjs";
+import {getUserByLoginOrEmail} from "@/model/user";
 import {loginSchema} from "@/schemas/auth/loginSchema";
-import bcrypt from "bcrypt";
 
-
-async function getUserByLoginOrEmail(loginOrEmail: unknown) {
-	prisma.user.findOne({
-		where: {
-			OR: [
-				{email: loginOrEmail},
-				{login: loginOrEmail}
-			]
-		}
-	})// @ts-ignore
-	.then((user) => {
-		 return user;
-	})// @ts-ignore
-		.catch((err) => {
-			return err;
-		})
-}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
 	providers: [
@@ -33,28 +14,41 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 				loginOrEmail: {},
 				password: {},
 			},
-			authorize: async (credentials): Promise<any>  => {
-				try {
-					const parsedCredentials = loginSchema.safeParse(credentials);
-					if (parsedCredentials.success) {
-						const {loginOrEmail,password} = parsedCredentials.data;
-						const user = await  getUserByLoginOrEmail(loginOrEmail)
+			// @ts-ignore
+			authorize: async (credentials) => {
+				const { loginOrEmail, password } = await loginSchema.parseAsync(credentials);
+				const user = await getUserByLoginOrEmail(loginOrEmail);
 
-						// @ts-ignore
-						if (!user || !user?.password) return null
-						// @ts-ignore
-						const passwordsMatch = await bcrypt.compare(password, user.password)
-
-						if (passwordsMatch) {
-							return user
-						}
-					}
-					console.log("Invalid credentials")
-					return null
-				}catch (error) {
-					return error
+				if (!user || !user.pass_hash) {
+					return null;
 				}
+
+				const passwordMatch = await bcrypt.compare(password, user.pass_hash);
+
+				if (!passwordMatch) {
+					return null;
+				}
+
+				return user;
 			}
 		}),
 	],
+	session: {
+		strategy: "jwt",
+	},
+	callbacks: {
+		async session({ session, token }) {
+			// @ts-ignore
+			session.user.id = token.id;
+			return session;
+		},
+		async jwt({ token, user }) {
+			if (user) token.id = user.id;
+			return token;
+		}
+	},
+	pages: {
+		signIn: "/login",
+		error: "/login",
+	}
 })

@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 body {
-  background-color: #F9FAFB;
+    background-color: #F9FAFB;
 }
+
 h1 {
     @apply text-3xl font-bold;
     font-family: var(--font-roboto);

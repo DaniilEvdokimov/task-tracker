@@ -1,10 +1,11 @@
 import Link from "next/link";
-interface AboutProps {
+type TAboutProps = {
 	content: string;
+	question: string
 	href: string;
 }
 
-export default function About({content, href}: AboutProps)
+export default function About({content, question, href}: TAboutProps)
  {
 	return (
 		<div className='flex flex-col items-left justify-between  gap-5 mt-9 pr-5'>
@@ -15,7 +16,7 @@ export default function About({content, href}: AboutProps)
 				Легко.<br/> Удобно. Прозрачно.
 			</p>
 			<div className='block text-sm pt-5'>
-				<p className='text-gray-500'>У вас ещё нет аккаунта?</p>
+				<p className='text-gray-500'>{question}</p>
 				<Link href={href} className='text-blue-600 font-bold'>{content}</Link>
 			</div>
 		</div>

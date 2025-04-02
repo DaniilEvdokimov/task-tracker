@@ -1,14 +1,14 @@
 'use client';
 
-import {Button, Input} from "@headlessui/react";
-import Link from "next/link";
-import clsx from 'clsx';
-import {useForm} from "react-hook-form";
-import {zodResolver} from "@hookform/resolvers/zod";
-import {loginSchema, TloginSchema} from "@/schemas/auth/loginSchema";
-import {useMutation} from "@tanstack/react-query";
-import { signIn } from "next-auth/react"
-import {useRouter} from "next/navigation";
+import { Button } from '@headlessui/react';
+import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { loginSchema, TloginSchema } from '@/schemas/auth/loginSchema';
+import { useMutation } from '@tanstack/react-query';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { Input } from '@/components/Input';
 
 export default function LoginForm() {
 	const router = useRouter();
@@ -16,14 +16,13 @@ export default function LoginForm() {
 	const {
 		register,
 		handleSubmit,
-		formState: { errors },
+		formState: { errors, isValid },
 		reset,
-	} = useForm({resolver: zodResolver(loginSchema),});
+	} = useForm({ resolver: zodResolver(loginSchema), mode: 'all' });
 
-	// @ts-ignore
 	const mutation = useMutation({
-		mutationFn: async(data: TloginSchema) => {
-			const result = await signIn("credentials", {
+		mutationFn: async (data: TloginSchema) => {
+			const result = await signIn('credentials', {
 				...data,
 				redirect: false,
 			});
@@ -35,61 +34,52 @@ export default function LoginForm() {
 			return result;
 		},
 		onSuccess: () => {
-			router.push("/");
+			router.push('/');
 			reset();
-		}
+		},
 	});
 
-	async function onSumbit(data: TloginSchema ) {
+	async function onSumbit(data: TloginSchema) {
 		mutation.mutate(data);
+		console.log(errors);
+		console.log(mutation.error);
 	}
 
 	return (
-		<form onSubmit={handleSubmit(onSumbit)} className='flex flex-col items-start justify-center
-		    mt-10 px-6 py-10 w-1/4 bg-white gap-6 border border-gray-300
-		    rounded-xl shadow-[0px_8px_16px_0px_#E5E7EB]'
+		<form
+			onSubmit={handleSubmit(onSumbit)}
+			className="flex flex-col items-start justify-center mt-10 px-6 py-10 w-1/4 bg-white gap-6 border border-gray-300 rounded-xl shadow-[0px_8px_16px_0px_#E5E7EB]"
 		>
-			<h2 className=''>Вход в аккаунт</h2>
-			<div className='w-full flex flex-col gap-4'>
-				<label className='flex flex-col w-full text-xs'>
-					e-mail или логин
-					<Input {...register('loginOrEmail')} type='text' name='loginOrEmail' placeholder='ivanov@yandex.ru'
-					       className={clsx('border border-gray-300 rounded-sm py-2 pl-2',
-						       'text-base mt-0.5 bg-white outline-none [&:placeholder-shown]:bg-gray-100 ',
-						       '[&:placeholder-shown]:text-gray-400',
-						       'focus:border-blue-500 hover:border-gray-400 hover:bg-white',
-						       {
-							       'border-red-500 focus:border-red-500': errors.loginOrEmail,
-							       'border-gray-300': !errors.loginOrEmail
-						       }
-					       )}
-					/>
-				</label>
-				<label className='flex flex-col w-full text-xs'>
-					пароль
-					<Input {...register('password')}  type='password' name='password' placeholder='******' className=
-						{clsx(
-							'border border-gray-300 rounded-sm',
-							'py-2 pl-2 text-base mt-0.5 outline-none bg-white [&:placeholder-shown]:text-gray-400',
-							' [&:placeholder-shown]:bg-gray-100',
-							'focus:border-blue-500 hover:border-gray-400 hover:bg-white',
-							{
-								'border-red-500 focus:border-red-500': errors.password,
-								'border-gray-300': !errors.password
-							}
-						)}
-					/>
-					{mutation.error?.message === 'CredentialsSignin' && <span className="text-red-500">{'Неправильный e-mail/логин или пароль'}</span>}
-					<Link href='/forgot-password' className='self-end text-base mt-1  text-gray-500 hover:text-blue-500'>
-						забыли пароль?
-					</Link>
-				</label>
+			<h2 className="">Вход в аккаунт</h2>
+			<div className="w-full flex flex-col gap-4">
+				<Input
+					label="e-mail или логин"
+					type="text"
+					placeholder="ivanov@yandex.ru"
+					error={errors.loginOrEmail}
+					{...register('loginOrEmail')}
+				/>
+				<Input
+					label="пароль"
+					type="password"
+					placeholder="******"
+					error={errors.password || (mutation.error?.message === 'CredentialsSignin' && 'Неправильный e-mail/логин или пароль')}
+					{...register('password')}
+				/>
+				<Link
+					href="/forgot-password"
+					className="self-end text-base mt-1 text-gray-500 hover:text-blue-500"
+				>
+					забыли пароль?
+				</Link>
 			</div>
-			<Button type='submit' className='text-white bg-blue-500 text-[14px] rounded-sm  py-2 w-full transition-colors
-			  duration-75 ease-in-out  outline-none hover:bg-blue-600 cursor-pointer'
+			<Button
+				type="submit"
+				disabled={!isValid}
+				className="text-white bg-blue-500 text-[14px] rounded-sm py-2 w-full transition-colors duration-75 ease-in-out outline-none hover:bg-blue-600 cursor-pointer disabled:bg-gray-300"
 			>
-				{mutation.isPending ? 'Вход...' : 'Войти' }
+				{mutation.isPending ? 'Вход...' : 'Войти'}
 			</Button>
 		</form>
-	)
+	);
 }

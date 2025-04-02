@@ -1,4 +1,5 @@
 import { z } from "zod";
+import {loginSchema} from "@/schemas/auth/loginSchema";
 
 export const registerSchema = z.object({
 	name: z
@@ -43,3 +44,5 @@ export const registerSchema = z.object({
 		message: "Пароли не совпадают",
 		path: ["confirmPassword"],
 	});
+
+export type TregisterSchema = z.infer<typeof registerSchema>

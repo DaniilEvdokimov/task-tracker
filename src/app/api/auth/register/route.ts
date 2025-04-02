@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { registerSchema } from "@/schemas/auth/registerSchema";
 import {ZodError} from "zod";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 
 export async function POST(req: Request) {

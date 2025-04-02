@@ -47,7 +47,7 @@ export default function RegisterForm() {
 			<div className='w-full flex flex-col gap-4'>
 				<Input
 					label='имя'
-				  name='name'
+					name={'name'}
 					type='text'
 					placeholder='Ярополк'
 					error={errors.name}

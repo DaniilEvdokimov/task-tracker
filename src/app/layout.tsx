@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { Inter, Roboto } from "next/font/google";
-import { LayoutContent } from "./client-layout-content";
+import { LayoutContent } from "@/components/layout/client-layout-content";
 
 const inter = Inter({ subsets: ["latin"], weight: ["400", "700"] });
 const roboto = Roboto({ subsets: ["latin"], variable: "--font-roboto", weight: ["400", "700"] });

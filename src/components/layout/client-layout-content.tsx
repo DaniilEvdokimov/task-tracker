@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 
 export function LayoutContent({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const isLoginPage = pathname === "/login";
+    const isLoginPage = pathname === "/login" || pathname === "/register";
 
     return (
         <>

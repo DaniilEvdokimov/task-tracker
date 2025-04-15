@@ -4,7 +4,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { CreateTaskSchema } from "@/schemas/tasks";
 
 // POST /api/tasks — создание задачи
-// Примечание: задач и подзадачи хранятся в одной таблице, у задач всегда "parent_task_id" равен null
+// Примечание: задачи и подзадачи хранятся в одной таблице, у задач всегда "parent_task_id" равен null, подзадачи имеют ссылку на родительскую задачу
 export async function POST(req: Request) {
     try {
         const currentUser = await getCurrentUser();

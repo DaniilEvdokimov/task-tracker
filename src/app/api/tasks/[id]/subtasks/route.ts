@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
-import {CreateTaskSchema} from "@/schemas/tasks";
+import { CreateTaskSchema } from "@/schemas/tasks";
 
 // GET /api/tasks/:id/subtasks — получение подзадачи
 export async function GET(req: Request, { params }: { params: { id: string } }) {

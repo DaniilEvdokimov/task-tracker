@@ -1,21 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
-import { z } from 'zod';
-
-const CreateTaskSchema = z.object({
-    title: z.string().min(1),
-    description: z.string().optional(),
-    due_date: z
-        .union([z.string(), z.date()])
-        .optional()
-        .transform((val) => (typeof val === 'string' ? new Date(val) : val)),
-    status: z.enum(["Новая", "В_работе", "Готова", "Закрыта", "Отменена"]),
-    priority: z.enum(["Низкий", "Нормальный", "Высокий"]),
-    executor_id: z.number(),
-    project_id: z.number().optional(),
-    team_id: z.number().optional(),
-});
+import { CreateTaskSchema } from "@/schemas/tasks";
 
 // POST /api/tasks — создание задачи
 export async function POST(req: Request) {

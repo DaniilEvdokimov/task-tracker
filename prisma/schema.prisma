@@ -40,7 +40,6 @@ model Team {
 
   createdBy   User     @relation("UserCreatedTeams", fields: [created_by], references: [id])
   members     TeamMember[]
-  projects    Project[]
   tasks       Task[]
 }
 
@@ -49,7 +48,7 @@ model TeamMember {
   team_id  Int
   user_id  Int
 
-  team     Team  @relation(fields: [team_id], references: [id])
+  team     Team  @relation(fields: [team_id], references: [id], onDelete: Cascade)
   user     User  @relation(fields: [user_id], references: [id])
 
   @@unique([team_id, user_id])
@@ -59,11 +58,9 @@ model Project {
   id          Int      @id @default(autoincrement())
   name        String
   created_by  Int
-  team_id     Int
   created_at  DateTime @default(now())
 
   createdBy   User     @relation("UserCreatedProjects", fields: [created_by], references: [id])
-  team        Team     @relation(fields: [team_id], references: [id])
   tasks       Task[]
   notifications Notification[]
 }
@@ -101,7 +98,7 @@ model Task {
   creator       User      @relation("Creator", fields: [creator_id], references: [id])
   executor      User      @relation("Executor", fields: [executor_id], references: [id])
   project       Project?  @relation(fields: [project_id], references: [id])
-  team          Team?     @relation(fields: [team_id], references: [id])
+  team          Team?     @relation(fields: [team_id], references: [id], onDelete: Cascade)
   parent_task   Task?     @relation("TaskToTask", fields: [parent_task_id], references: [id])
 
   comments      Comment[]

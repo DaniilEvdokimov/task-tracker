@@ -1,99 +1,96 @@
-import prisma from '@/lib/prisma';
-import { NextResponse } from 'next/server'
-import { z } from 'zod'
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
+import { UpdateProjectSchema, type UpdateProjectInput } from "@/schemas/project";
 
-const updateProjectSchema = z.object({
-    name: z.string().min(1).optional(),
-    team_id: z.number().int().optional(),
-})
-
-// GET api/projects/id - Получить проект по ID
+// GET /api/projects/:id - информация о проекте
 export async function GET(_: Request, { params }: { params: { id: string } }) {
     try {
-        const id = Number(params.id)
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
+            return NextResponse.json({ error: "Необходима авторизация" }, { status: 401 });
+        }
 
         const project = await prisma.project.findUnique({
-            where: { id },
-            include: {
-                team: true,
-                createdBy: true,
+            where: {
+                id: Number(params.id),
+                created_by: Number(currentUser.id),
             },
-        })
+            include: {
+                tasks: true,
+                notifications: true,
+            },
+        });
 
         if (!project) {
-            return NextResponse.json({ error: 'Проект не найден' }, { status: 404 })
+            return NextResponse.json({ error: "Проект не найден" }, { status: 404 });
         }
 
-        return NextResponse.json(project)
+        return NextResponse.json(project);
     } catch (error) {
-        if (error instanceof Error) {
-            return NextResponse.json(
-                { error: error.message },
-                { status: 500 }
-            );
-        } else {
-            return NextResponse.json(
-                { error: "Неизвестная ошибка" },
-                { status: 500 }
-            );
-        }
+        console.error("[PROJECT_GET]", error);
+        return NextResponse.json({ error: "Ошибка при получении проекта" }, { status: 500 });
     }
 }
 
-// PATCH api/projects/id - Обновить проект
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+// PUT /api/projects/:id - обновление проекта
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
     try {
-        const id = Number(params.id)
-        const body = await req.json()
-
-        const result = updateProjectSchema.safeParse(body)
-
-        if (!result.success) {
-            return NextResponse.json({ error: result.error.flatten() }, { status: 400 })
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
+            return NextResponse.json({ error: "Необходима авторизация" }, { status: 401 });
         }
 
-        const updated = await prisma.project.update({
-            where: { id },
-            data: result.data,
-        })
+        const body = (await request.json()) as UpdateProjectInput;
+        const validation = UpdateProjectSchema.safeParse(body);
 
-        return NextResponse.json(updated)
+        if (!validation.success) {
+            return NextResponse.json({ error: validation.error.errors[0].message }, { status: 400 });
+        }
+
+        const updated = await prisma.project.updateMany({
+            where: {
+                id: Number(params.id),
+                created_by: Number(currentUser.id),
+            },
+            data: {
+                name: validation.data.name,
+            },
+        });
+
+        if (updated.count === 0) {
+            return NextResponse.json({ error: "Проект не найден или нет прав" }, { status: 404 });
+        }
+
+        return NextResponse.json({ message: "Проект обновлен" });
     } catch (error) {
-        if (error instanceof Error) {
-            return NextResponse.json(
-                { error: error.message },
-                { status: 500 }
-            );
-        } else {
-            return NextResponse.json(
-                { error: "Неизвестная ошибка" },
-                { status: 500 }
-            );
-        }
+        console.error("[PROJECT_PUT]", error);
+        return NextResponse.json({ error: "Ошибка при обновлении проекта" }, { status: 500 });
     }
 }
 
-// DELETE api/projects/id Удалить проект
+// DELETE /api/projects/:id - удаление проекта
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
     try {
-        const id = Number(params.id)
-
-        await prisma.project.delete({
-            where: { id },
-        })
-
-        return NextResponse.json({ message: "Проект удален" })
-    } catch (error) {
-        if (error instanceof Error) {
-            return NextResponse.json(
-                { error: error.message },
-                { status: 500 }
-            );
-        } else {
-            return NextResponse.json(
-                { error: "Неизвестная ошибка" },
-                { status: 500 }
-            );
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
+            return NextResponse.json({ error: "Необходима авторизация" }, { status: 401 });
         }
+
+        const deleted = await prisma.project.deleteMany({
+            where: {
+                id: Number(params.id),
+                created_by: Number(currentUser.id),
+            },
+        });
+
+        if (deleted.count === 0) {
+            return NextResponse.json({ error: "Проект не найден или нет прав" }, { status: 404 });
+        }
+
+        return NextResponse.json({ message: "Проект удален" });
+    } catch (error) {
+        console.error("[PROJECT_DELETE]", error);
+        return NextResponse.json({ error: "Ошибка при удалении проекта" }, { status: 500 });
     }
 }

@@ -1,56 +1,93 @@
-import prisma from '@/lib/prisma';
-import { NextResponse } from 'next/server'
-import { z } from 'zod'
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
+import { CreateProjectSchema, type CreateProjectInput } from "@/schemas/project";
 
-const createProjectSchema = z.object({
-    name: z.string().min(1),
-    created_by: z.number().int(),
-    team_id: z.number().int(),
-})
-
-// GET api/projects - Получить все проекты
-export async function GET() {
+// POST /api/projects - создание проекта
+export async function POST(request: Request) {
     try {
-        const projects = await prisma.project.findMany({
-            include: {
-                team: true,
-                createdBy: true,
-            },
-            orderBy: {
-                created_at: 'desc',
-            },
-        })
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
+            return NextResponse.json({ error: "Необходима авторизация" }, { status: 401 });
+        }
 
-        return NextResponse.json(projects)
+        const body = (await request.json()) as CreateProjectInput;
+        const validation = CreateProjectSchema.safeParse(body);
+
+        if (!validation.success) {
+            return NextResponse.json({ error: validation.error.errors[0].message }, { status: 400 });
+        }
+
+        const project = await prisma.project.create({
+            data: {
+                name: validation.data.name,
+                created_by: Number(currentUser.id),
+            },
+        });
+
+        return NextResponse.json(project, { status: 201 });
     } catch (error) {
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Ошибка сервера" },
-            { status: 500 }
-        );
+        console.error("[PROJECTS_POST]", error);
+        return NextResponse.json({ error: "Ошибка при создании проекта" }, { status: 500 });
     }
 }
 
-// POST api/projects Создать новый проект
-export async function POST(req: Request) {
+// GET /api/projects - список проектов пользователя
+export async function GET() {
     try {
-        const body = await req.json()
-        const result = createProjectSchema.safeParse(body)
-
-        if (!result.success) {
-            return NextResponse.json({ error: result.error.flatten() }, { status: 400 })
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
+            return NextResponse.json({ error: "Необходима авторизация" }, { status: 401 });
         }
 
-        const { name, created_by, team_id } = result.data
+        // Получаем ID всех команд, в которых состоит пользователь
+        const userTeamMemberships = await prisma.teamMember.findMany({
+            where: {
+                user_id: Number(currentUser.id),
+            },
+            select: {
+                team_id: true,
+            },
+        });
 
-        const project = await prisma.project.create({
-            data: { name, created_by, team_id },
-        })
+        const teamIds = userTeamMemberships.map((m) => m.team_id);
 
-        return NextResponse.json(project, { status: 201 })
+        // Получаем проекты, если:
+        // - созданы пользователем
+        // - относятся к задачам, входящим в одну из команд пользователя
+        const projects = await prisma.project.findMany({
+            where: {
+                OR: [
+                    { created_by: Number(currentUser.id) },
+                    {
+                        tasks: {
+                            some: {
+                                team_id: { in: teamIds },
+                            },
+                        },
+                    },
+                ],
+            },
+            include: {
+                tasks: true,
+                createdBy: {
+                    select: {
+                        id: true,
+                        name: true,
+                        surname: true,
+                        email: true,
+                        avatar_url: true,
+                    },
+                },
+            },
+            orderBy: {
+                created_at: "desc",
+            },
+        });
+
+        return NextResponse.json(projects);
     } catch (error) {
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Ошибка сервера" },
-            { status: 500 }
-        );
+        console.error("[PROJECTS_GET]", error);
+        return NextResponse.json({ error: "Ошибка при получении проектов" }, { status: 500 });
     }
 }

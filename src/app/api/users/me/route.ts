@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import {getCurrentUser} from "../../../lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 
+// Get api/users/me - получить информация о текущем пользователе
 export async function GET() {
     const user = await getCurrentUser();
 

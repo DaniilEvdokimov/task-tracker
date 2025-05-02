@@ -10,7 +10,9 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
     return (
         <>
             {!isLoginPage && <Sidebar />}
-            {children}
+            <main className="ml-80">
+                {children}
+            </main>
         </>
     );
 }

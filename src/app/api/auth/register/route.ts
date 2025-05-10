@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { registerSchema } from "@/schemas/auth/registerSchema";
+import { userSchema } from "@/schemas/auth/UserSchema";
 import {ZodError} from "zod";
 import bcrypt from "bcryptjs";
 
@@ -8,7 +8,7 @@ import bcrypt from "bcryptjs";
 export async function POST(req: Request) {
 	try {
 		const body = await req.json();
-		const validatedData = registerSchema.parse(body);
+		const validatedData = userSchema.parse(body);
 
 		const existingEmail = await prisma.user.findUnique({
 			where: { email: validatedData.email },

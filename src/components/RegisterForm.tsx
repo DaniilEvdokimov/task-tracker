@@ -6,7 +6,7 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {useMutation} from "@tanstack/react-query";
 import {useRouter} from "next/navigation";
 import axios from "axios";
-import {registerSchema, TregisterSchema} from "@/schemas/auth/registerSchema";
+import {userSchema, TregisterSchema} from "@/schemas/auth/UserSchema";
 import { Input } from '@/components/Input';
 
 export default function RegisterForm() {
@@ -18,7 +18,7 @@ export default function RegisterForm() {
 		formState: { errors, isValid },
 		reset,
 		watch
-	} = useForm({resolver: zodResolver(registerSchema),mode: "onChange"});
+	} = useForm({resolver: zodResolver(userSchema),mode: "onChange"});
 
 	const mutation = useMutation({
 		mutationFn: async(data: TregisterSchema) => {

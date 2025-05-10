@@ -10,13 +10,14 @@ type InputProps = ComponentPropsWithoutRef<typeof HeadlessInput> & {
 	name?: string;
 	error?: FieldError | string;
 	register?: any;
+	defaultValue?: string;
 };
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
 	({ label, error, register, className, name, ...props }, ref) => {
 		return (
 			<label className="flex flex-col w-full text-xs">
-				{label}
+				<span className='text-gray-400'>{label}</span>
 				<HeadlessInput
 					{...(register && name ? register(name) : {})}
 					ref={ref}

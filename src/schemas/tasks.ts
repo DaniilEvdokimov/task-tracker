@@ -9,7 +9,7 @@ export const CreateTaskSchema = z.object({
         .optional()
         .transform((val) => {
           if (typeof val === 'string') {
-              return DateTime.fromFormat(val, 'dd.MM.yyyy').toJSDate();
+              return DateTime.fromFormat(val, 'yyyy-MM-dd').toJSDate();
           }
           return val;
       }),

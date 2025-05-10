@@ -11,6 +11,7 @@ import { Input } from "@/components/Input";
 import {useMutation, useQuery} from "@tanstack/react-query";
 import {TextAreaField} from "@/components/TextAreaField";
 import {SelectField} from "@/components/SelectField";
+import {clsx} from "clsx";
 
 
 type User = { id: number; name: string };
@@ -76,7 +77,7 @@ export default function TaskCreationModal({
 	});
 
 	const clearDueDate = () => {
-		setValue("due_date", DateTime.now().toFormat('dd.MM.yyyy'));
+		setValue("due_date", DateTime.now().toFormat('yyyy-MM-dd'));
 	};
 
 	return (
@@ -125,7 +126,7 @@ export default function TaskCreationModal({
 							/>
 
 							<div className="col-span-2 sm:col-span-1">
-								<label className="block text-sm font-medium">Срок исполнения</label>
+								<span className="text-gray-400">Срок исполнения</span>
 								<div className="flex items-center">
 									<Controller
 										name="due_date"
@@ -134,7 +135,17 @@ export default function TaskCreationModal({
 											<input
 												{...field}
 												type="date"
-												className="mt-1 block w-full border rounded p-2.5 text-base"
+												className={clsx(
+													"border border-gray-300 rounded-sm py-2 pl-2",
+													"text-base mt-0.5 bg-white outline-none [&:placeholder-shown]:bg-gray-100",
+													"[&:placeholder-shown]:text-gray-400",
+													"focus:border-blue-500 hover:border-gray-400 hover:bg-white",
+													{
+														"border-red-500 focus:border-red-500": errors.due_date,
+														"border-gray-300": !errors.due_date,
+													},
+													"w-full"
+												)}
 												min={DateTime.now().toISODate() || undefined}
 											/>
 										)}
@@ -148,17 +159,30 @@ export default function TaskCreationModal({
 									</button>
 								</div>
 								{errors.due_date && (
-									<p className="text-red-500 text-sm">{errors.due_date.message?.toString()}</p>
+									<span className="text-red-500">{errors.due_date.message?.toString()}</span>
 								)}
 							</div>
 
 							<div className="col-span-2 sm:col-span-1">
-								<label className="block text-sm font-medium">Приоритет</label>
+								<span className="text-gray-400">Приоритет</span>
 								<Controller
 									name="priority"
 									control={control}
 									render={({ field }) => (
-										<select {...field} className="mt-1 block w-full border rounded p-2.5 text-base">
+										<select
+											{...field}
+											className={clsx(
+												"border border-gray-300 rounded-sm py-2 pl-2",
+												"text-base mt-0.5 bg-white outline-none [&:placeholder-shown]:bg-gray-100",
+												"[&:placeholder-shown]:text-gray-400",
+												"focus:border-blue-500 hover:border-gray-400 hover:bg-white",
+												{
+													"border-red-500 focus:border-red-500": errors.priority,
+													"border-gray-300": !errors.priority,
+												},
+												"w-full"
+											)}
+										>
 											{PRIORITY_OPTIONS.map((option) => (
 												<option key={option.value} value={option.value}>
 													{option.label}
@@ -168,11 +192,10 @@ export default function TaskCreationModal({
 									)}
 								/>
 								{errors.priority && (
-									<p className="text-red-500 text-sm">{errors.priority.message?.toString()}</p>
+									<span className="text-red-500">{errors.priority.message?.toString()}</span>
 								)}
 							</div>
 						</div>
-
 						<button
 							type="submit"
 							disabled={createTaskMutation.status === "pending"}

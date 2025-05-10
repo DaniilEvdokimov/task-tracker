@@ -25,7 +25,7 @@ const PRIORITY_OPTIONS = [
 const DEFAULT_FORM_VALUES: TaskFormData = {
 	title: "",
 	description: "",
-	due_date: DateTime.now().toFormat('dd.MM.yyyy'),
+	due_date: DateTime.now().toFormat('yyyy-MM-dd'),
 	priority: "Нормальный",
 	status: "Новая",
 	executor_id: 0,
@@ -133,7 +133,7 @@ export default function TaskCreationModal({
 										render={({ field }) => (
 											<input
 												{...field}
-												type="string"
+												type="date"
 												className="mt-1 block w-full border rounded p-2.5 text-base"
 												min={DateTime.now().toISODate() || undefined}
 											/>

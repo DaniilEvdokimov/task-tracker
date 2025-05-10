@@ -3,30 +3,38 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
+import {twMerge} from "tailwind-merge";
 
 interface SidebarItemProps {
-    href: string;
-    icon: ReactNode;
-    children: ReactNode;
+    href?: string;
+    icon: React.ReactNode;
+    children: React.ReactNode;
+    onClick?: () => void;
 }
 
-export function SidebarItem({ href, icon, children }: SidebarItemProps) {
+export function SidebarItem({ href, icon, children, onClick }: SidebarItemProps) {
     const pathname = usePathname();
-    const isActive = pathname === href;
+    const isActive = href && pathname === href;
+
+    const className = twMerge(
+      "flex items-center py-3 px-4 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors duration-200",
+      isActive && "bg-blue-50 text-blue-600 font-medium"
+    );
+
+    if (onClick) {
+        return (
+          <button onClick={onClick} className={className}>
+              <span className="w-6 h-6 mr-4">{icon}</span>
+              {children}
+          </button>
+        );
+    }
 
     return (
-        <Link
-            href={href}
-            className={`flex items-center gap-2 font-inter text-base leading-6 tracking-normal pt-2 pb-2 pl-5 ${
-                isActive
-                    ? 'text-[#3B82F6] font-bold'
-                    : 'text-[#1F2937] hover:text-[#3B82F6]'
-            }`}
-        >
-            <span className="h-6 w-6">
-                {icon}
-            </span>
-            {children}
-        </Link>
+      <Link href={href || "#"} className={className}>
+          <span className="w-6 h-6 mr-4">{icon}</span>
+          {children}
+      </Link>
     );
 }
+

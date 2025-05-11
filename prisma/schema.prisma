@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  name       String
+  surname    String
+  email      String   @unique
+  login      String   @unique
+  pass_hash  String
+  avatar_url String?
+  created_at DateTime @default(now())
+
+  tasks_as_creator  Task[] @relation("Creator")
+  tasks_as_executor Task[] @relation("Executor")
+  comments          Comment[]
+  notifications     Notification[]
+  teams_created     Team[] @relation("UserCreatedTeams")
+  team_members      TeamMember[]
+  projects_created  Project[] @relation("UserCreatedProjects")
+}
+
+model Team {
+  id          Int      @id @default(autoincrement())
+  name        String
+  created_by  Int
+  created_at  DateTime @default(now())
+
+  createdBy   User     @relation("UserCreatedTeams", fields: [created_by], references: [id])
+  members     TeamMember[]
+  tasks       Task[]
+}
+
+model TeamMember {
+  id       Int  @id @default(autoincrement())
+  team_id  Int
+  user_id  Int
+
+  team     Team  @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  user     User  @relation(fields: [user_id], references: [id])
+
+  @@unique([team_id, user_id])
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String
+  created_by  Int
+  created_at  DateTime @default(now())
+
+  createdBy   User     @relation("UserCreatedProjects", fields: [created_by], references: [id])
+  tasks       Task[]
+  notifications Notification[]
+}
+
+enum TaskStatus {
+  Новая
+  В_работе
+  Готова
+  Закрыта
+  Отменена
+}
+
+enum TaskPriority {
+  Низкий
+  Нормальный
+  Высокий
+}
+
+model Task {
+  id            Int       @id @default(autoincrement())
+  title         String
+  description   String?
+  due_date      DateTime?
+  status        TaskStatus
+  priority      TaskPriority
+  creator_id    Int
+  executor_id   Int
+  project_id    Int?
+  team_id       Int?
+  parent_task_id Int?
+
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  creator       User      @relation("Creator", fields: [creator_id], references: [id])
+  executor      User      @relation("Executor", fields: [executor_id], references: [id])
+  project       Project?  @relation(fields: [project_id], references: [id])
+  team          Team?     @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  parent_task   Task?     @relation("TaskToTask", fields: [parent_task_id], references: [id])
+
+  comments      Comment[]
+  sub_tasks     Task[]    @relation("TaskToTask")
+  notifications Notification[]
+}
+
+model Comment {
+  id          Int      @id @default(autoincrement())
+  task_id     Int
+  user_id     Int
+  content     String
+  created_at  DateTime @default(now())
+
+  task        Task     @relation(fields: [task_id], references: [id])
+  user        User     @relation(fields: [user_id], references: [id])
+}
+
+model Notification {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  message     String
+  is_read     Boolean  @default(false)
+  task_id     Int?
+  project_id  Int?
+  created_at  DateTime @default(now())
+
+  user        User      @relation(fields: [user_id], references: [id])
+  task        Task?     @relation(fields: [task_id], references: [id])
+  project     Project?  @relation(fields: [project_id], references: [id])
+}

@@ -1,27 +1,39 @@
 'use client';
 
-import {useQuery, useQueryClient} from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import {useState} from "react";
-import {DateTime} from "luxon";
-import {TaskList} from "@/components/task/TaskList";
+import { useState } from "react";
+import { DateTime } from "luxon";
+import { TaskList } from "@/components/task/TaskList";
 import Pagination from "@/components/Pagination";
-import {Task, TaskStatus} from "@/types";
+import { Task, TaskStatus } from "@/types";
 
 type FilterProps = {
-	title: string;
+	title?: string;
 	filterType: "all" | "in-progress" | "completed";
+	projectId?: string;
 };
 
-const FilteredTaskPage = ({ title, filterType }: FilterProps) => {
+const FilteredTaskPage = ({ title, filterType, projectId }: FilterProps) => {
 	const queryClient = useQueryClient();
 	const [activeCheckboxId, setActiveCheckboxId] = useState<string | null>(null);
 	const [currentPage, setCurrentPage] = useState(1);
 	const tasksPerPage = 25;
 
+	const fetchTasks = () => {
+		const params = new URLSearchParams();
+
+		if (projectId) {
+			params.append("project_id", projectId);
+		}
+
+		let endpoint = `/api/tasks?${params.toString()}`;
+		return axios.get(endpoint).then((res) => res.data);
+	};
+
 	const { data: tasks = [], isPending, isError, error } = useQuery<Task[]>({
-		queryKey: ["getAllTasks"],
-		queryFn: () => axios.get("/api/tasks").then((res) => res.data),
+		queryKey: projectId ? ["getTasksByProject", projectId, filterType] : ["getAllTasks", filterType],
+		queryFn: fetchTasks,
 	});
 
 	if (isPending) {
@@ -33,10 +45,8 @@ const FilteredTaskPage = ({ title, filterType }: FilterProps) => {
 	}
 
 	const onTaskStatusUpdate = (taskId: number, status: TaskStatus) => {
-		queryClient.setQueryData<Task[]>(["getAllTasks"], (oldTasks = []) =>
-			oldTasks.map((task) =>
-				task.id === taskId ? { ...task, status } : task
-			)
+		queryClient.setQueryData<Task[]>(["getTasksByProject", projectId], (oldTasks = []) =>
+			oldTasks.map((task) => (task.id === taskId ? { ...task, status } : task))
 		);
 	};
 
@@ -80,7 +90,8 @@ const FilteredTaskPage = ({ title, filterType }: FilterProps) => {
 
 	return (
 		<div className="flex flex-col min-h-screen p-6">
-			<h1 className="mb-6">{title}</h1>
+			{title && <h1 className="mb-6">{title}</h1>}
+
 			{paginatedOverdue.length > 0 && (
 				<div className="mb-6">
 					<h2 className="mb-3 text-xl font-semibold text-yellow-500">

@@ -17,7 +17,8 @@ export function SidebarItem({ href, icon, children, onClick }: SidebarItemProps)
     const isActive = href && pathname === href;
 
     const className = twMerge(
-      "flex items-center py-3 px-4 text-gray-700 w-full hover:cursor-pointer hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors duration-200",
+      "flex items-center py-3 px-4 text-gray-700 w-full hover:cursor-pointer",
+      " hover:text-blue-600 rounded-lg transition-colors duration-200",
       isActive && "bg-blue-50 text-blue-600 font-medium"
     );
 

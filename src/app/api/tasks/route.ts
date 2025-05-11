@@ -43,8 +43,8 @@ export async function GET(req: Request) {
         const { searchParams } = new URL(req.url);
         const filters: any = {
             OR: [
-                { creator_id: currentUser.id },
-                { executor_id: currentUser.id },
+                { creator_id: Number(currentUser.id)},
+                { executor_id: Number(currentUser.id)},
             ]
         };
 

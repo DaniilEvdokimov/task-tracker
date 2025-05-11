@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
-import TaskCreationModal from "@/components/TaskCreationModal";
+import TaskCreationModal from "@/components/forms/TaskCreationModal";
 import {useModalStore} from "@/store/useModalStore";
 
 export function LayoutContent({ children }: { children: React.ReactNode }) {

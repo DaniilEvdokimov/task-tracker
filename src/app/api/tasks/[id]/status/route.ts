@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import {TaskStatus} from "@/types";
 
 
 // PUT /api/tasks/:id/status — изменение статуса
@@ -9,7 +10,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         const currentUser = await getCurrentUser();
         if (!currentUser) return NextResponse.json({ error: 'Необходима авторизация' }, { status: 401 });
 
-        const { status } = await req.json();
+        const { status }: { status: TaskStatus } = await req.json();
         const updated = await prisma.task.update({
             where: { id: Number(params.id) },
             data: { status },

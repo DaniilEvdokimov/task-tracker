@@ -1,6 +1,6 @@
 import BackgroundBlur from "@/components/svg/BackgroundBlur";
 import About from "@/components/About";
-import ForgotPasswordForm from "@/components/ForgotPasswordForm";
+import ForgotPasswordForm from "@/components/forms/ForgotPasswordForm";
 import Logo from "@/components/svg/Logo";
 
 export default function ForgotPasswordPage() {

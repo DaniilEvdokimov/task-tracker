@@ -1,6 +1,6 @@
 import BackgroundBlur from "@/components/svg/BackgroundBlur";
 import About from "@/components/About";
-import RegisterForm from "@/components/RegisterForm";
+import RegisterForm from "@/components/forms/RegisterForm";
 import Logo from "@/components/svg/Logo";
 
 export default function RegisterPage() {

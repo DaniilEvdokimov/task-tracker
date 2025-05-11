@@ -1,5 +1,5 @@
 import BackgroundBlur from "@/components/svg/BackgroundBlur";
-import LoginForm from "@/components/LoginForm";
+import LoginForm from "@/components/forms/LoginForm";
 import About from "@/components/About";
 import Logo from "@/components/svg/Logo";
 

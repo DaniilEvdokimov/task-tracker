@@ -3,7 +3,7 @@
 import {useQuery} from "@tanstack/react-query";
 import axios from "axios";
 import Camera from "@/components/svg/Camera";
-import UserSettignsForm from "@/components/userSettingsForm";
+import UserSettignsForm from "@/components/forms/userSettingsForm";
 
 
 const UserSettings = () => {

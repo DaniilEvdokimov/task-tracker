@@ -1,12 +1,12 @@
 'use client';
 
-import {Button} from "@headlessui/react";
-import {useForm} from "react-hook-form";
-import {zodResolver} from "@hookform/resolvers/zod";
-import {useMutation} from "@tanstack/react-query";
-import {useRouter} from "next/navigation";
-import axios from "axios";
-import {userSchema, TregisterSchema} from "@/schemas/auth/UserSchema";
+import { Button } from '@headlessui/react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import { userSchema, TregisterSchema } from '@/schemas/auth/UserSchema';
 import { Input } from '@/components/Input';
 
 export default function RegisterForm() {
@@ -17,11 +17,13 @@ export default function RegisterForm() {
 		handleSubmit,
 		formState: { errors, isValid },
 		reset,
-		watch
-	} = useForm({resolver: zodResolver(userSchema),mode: "onChange"});
+	} = useForm({
+		resolver: zodResolver(userSchema),
+		mode: 'onChange',
+	});
 
 	const mutation = useMutation({
-		mutationFn: async(data: TregisterSchema) => {
+		mutationFn: async (data: TregisterSchema) => {
 			return axios.post('/api/auth/register', data, {
 				headers: {
 					'Content-Type': 'application/json',
@@ -29,9 +31,9 @@ export default function RegisterForm() {
 			});
 		},
 		onSuccess: () => {
-			router.push("/login");
+			router.push('/login');
 			reset();
-		}
+		},
 	});
 
 	async function onSumbit(data: TregisterSchema) {
@@ -39,66 +41,55 @@ export default function RegisterForm() {
 	}
 
 	return (
-		<form onSubmit={handleSubmit(onSumbit)} className='flex flex-col items-start justify-center
-		    mt-10 px-6 py-10 w-1/4 bg-white gap-6 border border-gray-300
-		    rounded-xl shadow-[0px_8px_16px_0px_#E5E7EB]'
+		<form
+			onSubmit={handleSubmit(onSumbit)}
+			className="flex flex-col items-start justify-center
+        mt-10 px-6 py-10 w-1/4 bg-white gap-6 border border-gray-300
+        rounded-xl shadow-[0px_8px_16px_0px_#E5E7EB]"
 		>
-			<h2 className=''>Регистрация</h2>
-			<div className='w-full flex flex-col gap-4'>
+			<h2 className="">Регистрация</h2>
+			<div className="w-full flex flex-col gap-4">
 				<Input
-					label='имя'
-					name={'name'}
-					type='text'
-					placeholder='Ярополк'
+					label="Имя"
 					error={errors.name}
 					{...register('name')}
 				/>
 				<Input
-					label='Фамилия'
-					name='surname'
-					type='text'
-					placeholder='Иванов'
+					label="Фамилия"
 					error={errors.surname}
 					{...register('surname')}
 				/>
 				<Input
-					label='e-mail адрес'
-					name='email'
-					type='text'
-					placeholder='ivanov@yandex.ru'
+					label="E-mail адрес"
 					error={errors.email}
 					{...register('email')}
 				/>
 				<Input
-					label='Имя аккаунта'
-					name='login'
-					type='text'
-					placeholder='Yaropolik'
+					label="Имя аккаунта"
 					error={errors.login}
 					{...register('login')}
 				/>
 				<Input
-					label='Придумайте пароль'
-					name='password'
-					type='password'
-					placeholder='******'
+					label="Придумайте пароль"
+					type="password"
 					error={errors.password}
 					{...register('password')}
 				/>
 				<Input
-					label='Повторите пароль'
-					name='confirmPassword'
-					type='password'
-					placeholder='******'
+					label="Повторите пароль"
+					type="password"
 					error={errors.confirmPassword}
 					{...register('confirmPassword')}
 				/>
 			</div>
-			<Button disabled={!isValid} type='submit' className='text-white bg-blue-500 text-[14px] rounded-sm  py-2 w-full transition-colors
-			  duration-75 ease-in-out  outline-none hover:bg-blue-600 cursor-pointer disabled:bg-gray-300'
+			<Button
+				disabled={!isValid}
+				type="submit"
+				className="text-white bg-blue-500 text-[14px] rounded-sm py-2 w-full transition-colors
+          duration-75 ease-in-out outline-none hover:bg-blue-600 cursor-pointer disabled:bg-gray-300"
 			>
-				{mutation.isPending ? 'Регистрация...' : 'Зарегистрироваться' }
+				{mutation.isPending ? 'Регистрация...' : 'Зарегистрироваться'}
 			</Button>
 		</form>
-	)
+	);
 }

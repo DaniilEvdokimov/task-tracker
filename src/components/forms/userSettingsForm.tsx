@@ -5,7 +5,8 @@ import {useMutation} from "@tanstack/react-query";
 import axios from "axios";
 import {Input} from "@/components/Input";
 import {Button} from "@headlessui/react";
-import Link from "next/link";
+import {handleSignOut} from "@/utils/signOutAction";
+
 
 interface TUser {
 	id: number,
@@ -130,10 +131,14 @@ const UserSettignsForm = ({user}: {user: TUser}) => {
 					  '>
 					Обновить данные
 				</Button>
-				{/*Потом как доп функционал*/}
-				<Link href='/deleteAccount' className='text-blue-500 hover:text-red-500'>
-					удалить аккаунт
-				</Link>
+				<button
+					onClick={async () => {
+						await handleSignOut();
+					}}
+					className="text-blue-500 hover:cursor-pointer hover:text-red-500"
+				>
+					выйти из аккаунта
+				</button>
 			</div>
 		</form>
 	);

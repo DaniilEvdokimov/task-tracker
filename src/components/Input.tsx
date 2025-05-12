@@ -1,25 +1,23 @@
 'use client';
 
-import { Input as HeadlessInput } from '@headlessui/react';
+import React, { forwardRef } from 'react';
 import { clsx } from 'clsx';
-import { ComponentPropsWithoutRef, forwardRef } from 'react';
-import { FieldError } from 'react-hook-form';
+import { FieldError, UseFormRegisterReturn } from 'react-hook-form';
 
-type InputProps = ComponentPropsWithoutRef<typeof HeadlessInput> & {
+type InputProps = React.ComponentPropsWithoutRef<'input'> & {
 	label?: string;
-	name?: string;
+	name: string;
 	error?: FieldError | string;
-	register?: any;
-	defaultValue?: string;
+	register?: UseFormRegisterReturn;
 };
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
 	({ label, error, register, className, name, ...props }, ref) => {
 		return (
 			<label className="flex flex-col w-full text-xs">
-				<span className='text-gray-400'>{label}</span>
-				<HeadlessInput
-					{...(register && name ? register(name) : {})}
+				{label && <span className="text-gray-400">{label}</span>}
+				<input
+					{...register}
 					ref={ref}
 					name={name}
 					className={clsx(

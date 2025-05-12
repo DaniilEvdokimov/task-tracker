@@ -93,7 +93,6 @@ export default function TaskCreationModal({
 					<form onSubmit={handleSubmit((data) => createTaskMutation.mutate(data))}
 					      className="mt-4 space-y-2">
 						<Input
-							name="title"
 							label="Название задачи"
 							{...register("title")}
 							placeholder="Название задачи"
@@ -147,6 +146,12 @@ export default function TaskCreationModal({
 													"w-full"
 												)}
 												min={DateTime.now().toISODate() || undefined}
+												value={
+													field.value instanceof Date
+														? field.value.toISOString().split("T")[0]
+														: field.value || ""
+												} // Преобразуем Date в строку формата 'yyyy-MM-dd'
+												onChange={(e) => field.onChange(e.target.value)}
 											/>
 										)}
 									/>

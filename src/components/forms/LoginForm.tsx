@@ -18,7 +18,10 @@ export default function LoginForm() {
 		handleSubmit,
 		formState: { errors, isValid },
 		reset,
-	} = useForm({ resolver: zodResolver(loginSchema), mode: 'all' });
+	} = useForm({
+		resolver: zodResolver(loginSchema),
+		mode: 'all',
+	});
 
 	const mutation = useMutation({
 		mutationFn: async (data: TloginSchema) => {
@@ -50,7 +53,7 @@ export default function LoginForm() {
 			onSubmit={handleSubmit(onSumbit)}
 			className="flex flex-col items-start justify-center mt-10 px-6 py-10 w-1/4 bg-white gap-6 border border-gray-300 rounded-xl shadow-[0px_8px_16px_0px_#E5E7EB]"
 		>
-			<h2 className="">Вход в аккаунт</h2>
+			<h2>Вход в аккаунт</h2>
 			<div className="w-full flex flex-col gap-4">
 				<Input
 					label="e-mail или логин"
@@ -63,7 +66,12 @@ export default function LoginForm() {
 					label="пароль"
 					type="password"
 					placeholder="******"
-					error={errors.password || (mutation.error?.message === 'CredentialsSignin' && 'Неправильный e-mail/логин или пароль')}
+					error={
+						errors.password ||
+						(mutation.error?.message === 'CredentialsSignin'
+							? 'Неправильный e-mail/логин или пароль'
+							: undefined)
+					}
 					{...register('password')}
 				/>
 				<Link

@@ -7,7 +7,7 @@ import {useModalStore} from "@/store/useModalStore";
 
 export function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isLoginPage = pathname === "/login" || pathname === "/register";
+  const isLoginPage = pathname === "/login" || pathname === "/register" || pathname === "/forgot-password";
   const { isTaskCreationModalOpen, closeTaskCreationModal } = useModalStore();
 
   return (

@@ -37,7 +37,7 @@ export default function LoginForm() {
 			return result;
 		},
 		onSuccess: () => {
-			router.push('/');
+			router.push('/user/settings');
 			reset();
 		},
 	});

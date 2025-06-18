@@ -33,7 +33,7 @@ const UserSettings = () => {
 					{/*Реализовать, когда будет аватарка будет передаваться файлом*/}
 					<Camera />
 				</div>
-				<UserSettignsForm user={data.data}/>
+				<UserSettignsForm key={data.data.id} user={data.data}/>
 			</div>
 		</div>
 	);

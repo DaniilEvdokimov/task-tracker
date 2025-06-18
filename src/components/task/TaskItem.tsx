@@ -6,6 +6,7 @@ import axios from "axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import TaskEditForm from "@/components/forms/TaskEditForm";
+import { getProjectColor } from "@/utils/projectColors";
 
 export const TaskItem = ({
 							 task,
@@ -106,7 +107,7 @@ export const TaskItem = ({
 						до {task.due_date ? DateTime.fromISO(task.due_date).toFormat('dd.MM.yyyy') : 'Нет дедлайна'}
 					</span>
 					<span
-						className={`bg-yellow-200 rounded-full px-1.5 text-xs ${
+						className={`${getProjectColor(task.project)} rounded-full px-1.5 text-xs ${
 							task.project ? '' : 'invisible'
 						}`}
 					>

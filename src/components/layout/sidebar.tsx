@@ -81,11 +81,11 @@ export function Sidebar() {
                   }))),
             ],
         },
-        {
-            title: "Команды",
-            icon: <UserGroupIcon />,
-            items: [{ href: "/teams", text: "Все команды" }],
-        },
+        // {
+        //     title: "Команды",
+        //     icon: <UserGroupIcon />,
+        //     items: [{ href: "/teams", text: "Все команды" }],
+        // },
     ];
 
     // Формируем имя пользователя

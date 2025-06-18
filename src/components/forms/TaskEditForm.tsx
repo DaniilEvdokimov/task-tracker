@@ -12,7 +12,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { TextAreaField } from "@/components/TextAreaField";
 import { SelectField } from "@/components/SelectField";
 import { clsx } from "clsx";
-import { z } from "zod";
+// import { z } from "zod";
 
 type User = { id: number; name: string };
 type Project = { id: number; name: string };
@@ -50,15 +50,15 @@ const STATUS_OPTIONS = [
 	{ value: "Отменена", label: "Отменена" },
 ];
 
-const CommentSchema = z.object({
-	content: z.string().min(1, "Комментарий не может быть пустым")
-});
+// const CommentSchema = z.object({
+// 	content: z.string().min(1, "Комментарий не может быть пустым")
+// });
 
 export default function TaskEditForm({
-	                                     isOpen,
-	                                     onClose,
-	                                     taskId,
-                                     }: {
+										 isOpen,
+										 onClose,
+										 taskId,
+									 }: {
 	isOpen: boolean;
 	onClose: () => void;
 	taskId: number;
@@ -122,7 +122,9 @@ export default function TaskEditForm({
 				description: task.description || "",
 				due_date: task.due_date instanceof Date
 					? DateTime.fromJSDate(task.due_date).toFormat('yyyy-MM-dd')
-					: task.due_date || DateTime.now().toFormat('yyyy-MM-dd'),
+					: typeof task.due_date === 'string'
+						? DateTime.fromISO(task.due_date).toFormat('yyyy-MM-dd')
+						: DateTime.now().toFormat('yyyy-MM-dd'),
 				priority: task.priority,
 				status: task.status,
 				executor_id: task.executor_id,
@@ -133,17 +135,26 @@ export default function TaskEditForm({
 
 	// Update task mutation
 	const updateTaskMutation = useMutation({
-		mutationFn: (data: TaskFormData) =>
-			axios.put(`/api/tasks/${taskId}`, data).then(res => res.data),
+		mutationFn: (data: TaskFormData) => {
+			// Преобразуем данные перед отправкой
+			const formattedData = {
+				...data,
+				due_date: data.due_date ? DateTime.fromFormat(data.due_date as string, 'yyyy-MM-dd').toISO() : null,
+			};
+			return axios.put(`/api/tasks/${taskId}`, formattedData).then(res => res.data);
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["task", taskId] });
 			queryClient.invalidateQueries({ queryKey: ["tasks"] });
+			queryClient.invalidateQueries({ queryKey: ['getAllTasks'] });
+			queryClient.invalidateQueries({ queryKey: ['getTasksByProject'] });
+			onClose(); // Закрываем модальное окно после успешного сохранения
 		},
 		onError: (error) => {
 			console.error("Ошибка при обновлении задачи:", error);
+			// Можно добавить уведомление об ошибке для пользователя
 		}
 	});
-
 
 	// Add comment mutation
 	const addCommentMutation = useMutation({
@@ -168,23 +179,31 @@ export default function TaskEditForm({
 		}
 	};
 
-
 	if (isTaskLoading) {
-		return <div>Загрузка...</div>;
+		return (
+			<Dialog open={isOpen} onClose={onClose} className="relative z-50">
+				<div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+				<div className="fixed inset-0 flex items-center justify-center p-4">
+					<Dialog.Panel className="w-full max-w-lg bg-white p-4 rounded shadow-lg">
+						<div className="text-center">Загрузка...</div>
+					</Dialog.Panel>
+				</div>
+			</Dialog>
+		);
 	}
 
 	return (
 		<Dialog open={isOpen} onClose={onClose} className="relative z-50">
 			<div className="fixed inset-0 bg-black/30" aria-hidden="true" />
 			<div className="fixed inset-0 flex items-center justify-center p-4">
-				<Dialog.Panel className="w-full max-w-lg bg-white p-4 rounded shadow-lg relative">
+				<Dialog.Panel className="w-full max-w-2xl bg-white p-6 rounded shadow-lg relative max-h-[90vh] overflow-y-auto">
 					<button onClick={onClose} className="absolute top-2.5 right-2.5 p-1">
 						<XMarkIcon className="w-8 h-8 stroke-gray-500 hover:stroke-black hover:cursor-pointer" />
 					</button>
 					<Dialog.Title className="text-lg font-bold">Редактирование задачи</Dialog.Title>
 
 					<form onSubmit={handleSubmit((data) => updateTaskMutation.mutate(data))}
-					      className="mt-4 space-y-2">
+						  className="mt-4 space-y-4">
 						<Input
 							label="Название задачи"
 							{...register("title")}
@@ -192,14 +211,16 @@ export default function TaskEditForm({
 							error={errors.title?.message?.toString()}
 						/>
 
-						<div className="grid grid-cols-2 gap-6 text-sm">
-							<TextAreaField
-								label="Описание"
-								register={register}
-								name="description"
-								placeholder="Введите описание задачи"
-								error={errors.description?.message?.toString()}
-							/>
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+							<div className="md:col-span-2">
+								<TextAreaField
+									label="Описание"
+									register={register}
+									name="description"
+									placeholder="Введите описание задачи"
+									error={errors.description?.message?.toString()}
+								/>
+							</div>
 
 							<SelectField
 								label="Исполнитель"
@@ -217,7 +238,7 @@ export default function TaskEditForm({
 								error={errors.project_id?.message?.toString()}
 							/>
 
-							<div className="col-span-2 sm:col-span-1">
+							<div>
 								<span className="text-gray-400">Срок исполнения</span>
 								<div className="flex items-center">
 									<Controller
@@ -261,7 +282,7 @@ export default function TaskEditForm({
 								)}
 							</div>
 
-							<div className="col-span-2 sm:col-span-1">
+							<div>
 								<span className="text-gray-400">Приоритет</span>
 								<Controller
 									name="priority"
@@ -294,7 +315,7 @@ export default function TaskEditForm({
 								)}
 							</div>
 
-							<div className="col-span-2 sm:col-span-1">
+							<div>
 								<span className="text-gray-400">Статус</span>
 								<Controller
 									name="status"
@@ -330,32 +351,32 @@ export default function TaskEditForm({
 
 						<button
 							type="submit"
-							disabled={updateTaskMutation.status === "pending"}
+							disabled={updateTaskMutation.isPending}
 							className="w-full mt-6 py-2.5 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
 						>
-							{updateTaskMutation.status === "pending" ? "Сохранение..." : "Сохранить изменения"}
+							{updateTaskMutation.isPending ? "Сохранение..." : "Сохранить изменения"}
 						</button>
 
 						{/* Comments section */}
-						<div className="mt-6">
-							<h3 className="font-semibold mb-2">Комментарии</h3>
+						<div className="mt-6 pt-6 border-t border-gray-200">
+							<h3 className="font-semibold mb-4">Комментарии</h3>
 
-							<div className="border border-gray-200 rounded p-2 mb-4">
+							<div className="border border-gray-200 rounded p-3 mb-4">
                 <textarea
-	                value={newComment}
-	                onChange={(e) => setNewComment(e.target.value)}
-	                placeholder="Добавить комментарий..."
-	                className="w-full p-2 border border-gray-300 rounded resize-none"
-	                rows={3}
-                />
+					value={newComment}
+					onChange={(e) => setNewComment(e.target.value)}
+					placeholder="Добавить комментарий..."
+					className="w-full p-2 border border-gray-300 rounded resize-none"
+					rows={3}
+				/>
 								<div className="flex justify-end mt-2">
 									<button
 										type="button"
 										onClick={handleAddComment}
-										disabled={!newComment.trim() || addCommentMutation.status === "pending"}
-										className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
+										disabled={!newComment.trim() || addCommentMutation.isPending}
+										className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
 									>
-										{addCommentMutation.status === "pending" ? "Отправка..." : "Отправить"}
+										{addCommentMutation.isPending ? "Отправка..." : "Отправить"}
 									</button>
 								</div>
 							</div>
@@ -365,11 +386,11 @@ export default function TaskEditForm({
 							) : comments.length === 0 ? (
 								<p className="text-gray-500 text-sm">Нет комментариев</p>
 							) : (
-								<ul className="space-y-3">
+								<div className="space-y-3 max-h-60 overflow-y-auto">
 									{comments.map((comment) => (
-										<li key={comment.id} className="border-b border-gray-100 pb-2">
+										<div key={comment.id} className="border-b border-gray-100 pb-3 last:border-b-0">
 											<div className="flex items-start">
-												<div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-2">
+												<div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
 													{comment.user.avatar_url ? (
 														<img
 															src={comment.user.avatar_url}
@@ -377,22 +398,24 @@ export default function TaskEditForm({
 															className="w-8 h-8 rounded-full"
 														/>
 													) : (
-														<span className="text-xs">{comment.user.name.charAt(0)}{comment.user.surname?.charAt(0)}</span>
+														<span className="text-xs font-medium">
+															{comment.user.name.charAt(0)}{comment.user.surname?.charAt(0)}
+														</span>
 													)}
 												</div>
-												<div>
+												<div className="flex-1">
 													<div className="flex items-baseline">
 														<span className="font-medium text-sm">{comment.user.name} {comment.user.surname}</span>
 														<span className="ml-2 text-xs text-gray-500">
                               {DateTime.fromISO(comment.created_at).toFormat('dd.MM.yyyy HH:mm')}
                             </span>
 													</div>
-													<p className="text-sm mt-1">{comment.content}</p>
+													<p className="text-sm mt-1 text-gray-700">{comment.content}</p>
 												</div>
 											</div>
-										</li>
+										</div>
 									))}
-								</ul>
+								</div>
 							)}
 						</div>
 					</form>

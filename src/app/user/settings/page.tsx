@@ -143,13 +143,20 @@ const UserSettings = () => {
 							/>
 						) : null}
 						{/* Заглушка если нет аватара или изображение не загрузилось */}
-						<div
-							className={`w-full h-full bg-black flex items-center justify-center text-white text-4xl font-semibold ${
-								data.data.avatar_url ? 'hidden' : 'flex'
-							}`}
-						>
-							{data.data.name ? data.data.name.charAt(0).toUpperCase() : '?'}
-						</div>
+						<img
+							src="https://home-evde.ru/images/partner/default_man.png"
+							alt="User avatar"
+							className="object-cover w-full h-full"
+							onError={(e) => {
+								// Если изображение не загрузилось, скрываем его и показываем заглушку
+								const target = e.target as HTMLImageElement;
+								target.style.display = 'none';
+								const fallback = target.nextElementSibling as HTMLElement;
+								if (fallback) {
+									fallback.style.display = 'flex';
+								}
+							}}
+						/>
 					</div>
 
 					{/* Кнопка камеры */}

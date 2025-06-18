@@ -1,8 +1,10 @@
+
 import { Task, TaskStatus } from "@/types";
 import {DateTime} from "luxon";
 import {Checkbox} from "@headlessui/react";
 import {TaskType} from "@/components/task/TaskList";
 import axios from "axios";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const TaskItem = ({
 	                         task,
@@ -21,22 +23,38 @@ export const TaskItem = ({
 	setActiveCheckboxId: (id: string | null) => void;
 	onTaskStatusUpdate: (taskId: number, status: TaskStatus) => void;
 }) => {
+	const queryClient = useQueryClient();
+
 	const borderColor =
 		taskType === "overdue" ? "border-l-yellow-500" :
 			taskType === "current" ? "border-l-blue-500" :
 				"border-l-green-500";
 
-	const handleStatusUpdate = async () => {
-		try {
-			await axios.put(`/api/tasks/${task.id}/status`, { status: "Закрыта" as TaskStatus });
-
-			onTaskStatusUpdate(task.id, "Закрыта");
-
+	const updateTaskStatusMutation = useMutation({
+		mutationFn: async (newStatus: TaskStatus) => {
+			const response = await axios.put(`/api/tasks/${task.id}/status`, {
+				status: newStatus
+			});
+			return response.data;
+		},
+		onSuccess: (data, newStatus) => {
+			// Инвалидируем кэш для всех запросов задач
+			queryClient.invalidateQueries({ queryKey: ['getAllTasks'] });
+			queryClient.invalidateQueries({ queryKey: ['getTasksByProject'] });
+			// Вызываем колбэк для обновления локального состояния
+			onTaskStatusUpdate(task.id, newStatus);
 			setActiveCheckboxId(task.id.toString());
-		} catch (error) {
+		},
+		onError: (error) => {
 			console.error("Ошибка при обновлении статуса задачи:", error);
 		}
+	});
+
+	const handleStatusUpdate = () => {
+		updateTaskStatusMutation.mutate("Закрыта");
 	};
+
+	const isCompleted = task.status === "Закрыта";
 
 	return (
 		<li
@@ -47,28 +65,27 @@ export const TaskItem = ({
 		>
 			<div className="flex items-center gap-10 flex-grow">
 				<div className="flex items-center gap-3">
-					<Checkbox
-						id={`task-${task.id}`}
-						checked={task.status === "Закрыта"}
-						onChange={handleStatusUpdate}
-						className="
-							w-4.5 h-4.5 border-1 border-blue-500
-							rounded-xs hover:cursor-pointer hover:border-blue-600
-							flex items-center justify-center
-						"
-					>
-						<span
-							className={`block w-[10px] h-[10px] rounded-xs bg-blue-600 ${
-								task.status === "Закрыта" ? '' : 'hidden'
-							}`}
-						></span>
-					</Checkbox>
 					<label
 						htmlFor={`task-${task.id}`}
-						className="text-gray-500 text-xs hover:cursor-pointer hover:text-blue-500"
-						onClick={handleStatusUpdate}
+						className={`text-gray-500 text-xs ${
+							isCompleted
+								? 'cursor-default'
+								: updateTaskStatusMutation.isPending
+									? 'opacity-50 cursor-not-allowed'
+									: 'hover:cursor-pointer hover:text-blue-500'
+						}`}
+						onClick={
+							isCompleted || updateTaskStatusMutation.isPending
+								? undefined
+								: handleStatusUpdate
+						}
 					>
-						Завершить
+						{isCompleted
+							? 'Завершено'
+							: updateTaskStatusMutation.isPending
+								? 'Завершается...'
+								: 'Завершить'
+						}
 					</label>
 				</div>
 				<p>{task.title}</p>

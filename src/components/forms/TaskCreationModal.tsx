@@ -8,7 +8,7 @@ import axios from "axios";
 import {TaskFormData, TaskFormSchema} from "@/schemas/tasks";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Input } from "@/components/Input";
-import {useMutation, useQuery} from "@tanstack/react-query";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {TextAreaField} from "@/components/TextAreaField";
 import {SelectField} from "@/components/SelectField";
 import {clsx} from "clsx";
@@ -40,6 +40,8 @@ export default function TaskCreationModal({
 	isOpen: boolean;
 	onClose: () => void;
 }) {
+	const queryClient = useQueryClient();
+
 	const { data: users = [] } = useQuery<User[]>({
 		queryKey: ["users"],
 		queryFn: () => axios.get("/api/users").then((res) => res.data),
@@ -67,8 +69,10 @@ export default function TaskCreationModal({
 	const createTaskMutation = useMutation({
 		mutationFn: (data: TaskFormData) =>
 			axios.post('/api/tasks', data).then(res => res.data),
-		onSuccess: () => {
+		onSuccess: async () => {
 			onClose();
+			await queryClient.invalidateQueries({ queryKey: ["getAllTasks"] });
+			await queryClient.invalidateQueries({ queryKey: ["getTasksByProject"] });
 			reset(DEFAULT_FORM_VALUES);
 		},
 		onError: (error) => {

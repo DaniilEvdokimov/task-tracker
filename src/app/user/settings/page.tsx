@@ -98,6 +98,7 @@ const UserSettings = () => {
 		onSuccess: () => {
 			// Обновляем кэш запроса
 			queryClient.invalidateQueries({ queryKey: ['getUserCurrent'] });
+			queryClient.invalidateQueries({ queryKey: ['fullUserInfo'] });
 			setIsModalOpen(false);
 		},
 		onError: (error) => {

@@ -92,25 +92,33 @@ const NotificationsPage = ({ title, filterType, projectId }: FilterProps) => {
 		<div className="flex flex-col min-h-screen p-6">
 			{title && <h1 className="mb-6">{title}</h1>}
 
-			{paginatedOverdue.length > 0 && (
-				<div className="mb-6">
-					<h2 className="mb-3 text-xl font-semibold text-yellow-500">
-						Просроченные
-					</h2>
-					<TaskList
-						data={paginatedOverdue}
-						taskType="overdue"
-						activeCheckboxId={activeCheckboxId}
-						setActiveCheckboxId={setActiveCheckboxId}
-						onTaskStatusUpdate={onTaskStatusUpdate}
+			{filteredTasks.length === 0 ? (
+				<p className="text-gray-500 text-lg">
+					Нет уведомлений
+				</p>
+			) : (
+				<>
+					{paginatedOverdue.length > 0 && (
+						<div className="mb-6">
+							<h2 className="mb-3 text-xl font-semibold text-yellow-500">
+								Просроченные
+							</h2>
+							<TaskList
+								data={paginatedOverdue}
+								taskType="overdue"
+								activeCheckboxId={activeCheckboxId}
+								setActiveCheckboxId={setActiveCheckboxId}
+								onTaskStatusUpdate={onTaskStatusUpdate}
+							/>
+						</div>
+					)}
+					<Pagination
+						currentPage={currentPage}
+						totalPages={totalPages}
+						onPageChange={setCurrentPage}
 					/>
-				</div>
+				</>
 			)}
-			<Pagination
-				currentPage={currentPage}
-				totalPages={totalPages}
-				onPageChange={setCurrentPage}
-			/>
 		</div>
 	);
 };

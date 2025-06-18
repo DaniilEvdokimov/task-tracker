@@ -1,11 +1,12 @@
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {TupdateUserSchema, updateUserSchema} from "@/schemas/auth/UserSchema";
-import {useMutation} from "@tanstack/react-query";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
 import axios from "axios";
 import {Input} from "@/components/Input";
 import {Button} from "@headlessui/react";
 import {handleSignOut} from "@/utils/signOutAction";
+import {useState} from "react";
 
 
 interface TUser {
@@ -19,6 +20,8 @@ interface TUser {
 }
 
 const UserSettignsForm = ({user}: {user: TUser}) => {
+	const queryClient = useQueryClient();
+
 	const {
 		register,
 		handleSubmit,
@@ -37,7 +40,7 @@ const UserSettignsForm = ({user}: {user: TUser}) => {
 
 	const mutation = useMutation({
 		mutationFn: async (data: TupdateUserSchema) => {
-			const result = await axios.put(`/api/users/${user.id}`, data);
+			await axios.put(`/api/users/${user.id}`, data);
 		},
 		onError: (error) => {
 			if (axios.isAxiosError(error)) {
@@ -52,6 +55,12 @@ const UserSettignsForm = ({user}: {user: TUser}) => {
 					console.error("Ошибка:", message);
 				}
 			}
+		},
+		onSuccess: () => {
+			// Invalidate queries that might be affected by this update
+			queryClient.invalidateQueries({
+				queryKey: ['fullUserInfo'] // Adjust this key based on your actual query keys
+			});
 		},
 	})
 
@@ -125,11 +134,11 @@ const UserSettignsForm = ({user}: {user: TUser}) => {
 				<Button
 					type='submit'
 					className='
-					text-white bg-blue-500 text-[14px]
+					text-white bg-blue-500 text-[14px] min-w-[140px]
 					  rounded-sm p-2 transition-colors duration-75 ease-in-out outline-none
 					hover:bg-blue-600 cursor-pointer disabled:bg-gray-300
 					  '>
-					Обновить данные
+					{mutation.isPending ? 'Обновление...' : 'Обновить данные'}
 				</Button>
 				<button
 					onClick={async () => {

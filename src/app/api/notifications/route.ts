@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 
 // GET /api/notifications - список уведомлений для текущего пользователя
-export async function GET() {
+export async function GET(req: Request) {
     try {
         const currentUser = await getCurrentUser();
         if (!currentUser) {
@@ -13,9 +13,38 @@ export async function GET() {
             );
         }
 
+        const { searchParams } = new URL(req.url);
+        const isReadParam = searchParams.get('is_read');
+        const projectId = searchParams.get('project_id');
+
+        const whereClause: any = {
+            user_id: Number(currentUser.id),
+        };
+
+        if (isReadParam !== null) {
+            whereClause.is_read = isReadParam === 'true';
+        }
+
+        if (projectId) {
+            whereClause.project_id = Number(projectId);
+        }
+
         const notifications = await prisma.notification.findMany({
-            where: {
-                user_id: Number(currentUser.id),
+            where: whereClause,
+            include: {
+                task: {
+                    select: {
+                        id: true,
+                        title: true,
+                        due_date: true,
+                    }
+                },
+                project: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                }
             },
             orderBy: {
                 created_at: "desc",

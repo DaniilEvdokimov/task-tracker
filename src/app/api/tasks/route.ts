@@ -72,6 +72,45 @@ export async function GET(req: Request) {
             orderBy: { created_at: "desc" },
         });
 
+        // Check for overdue tasks and create notifications
+        const now = new Date();
+        const overdueNotifications = [];
+
+        for (const task of tasks) {
+            if (
+                task.due_date && 
+                new Date(task.due_date) < now && 
+                task.status !== "Закрыта" && 
+                task.status !== "Отменена"
+            ) {
+                // Check if we already have a notification for this overdue task
+                const existingNotification = await prisma.notification.findFirst({
+                    where: {
+                        task_id: task.id,
+                        message: { contains: "просрочена" },
+                        created_at: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } // Last 24 hours
+                    }
+                });
+
+                // If no recent notification exists, create one
+                if (!existingNotification) {
+                    overdueNotifications.push({
+                        user_id: task.executor_id,
+                        message: `Задача "${task.title}" просрочена! Срок выполнения: ${new Date(task.due_date).toLocaleDateString()}`,
+                        task_id: task.id,
+                        project_id: task.project_id,
+                    });
+                }
+            }
+        }
+
+        // Create all overdue notifications
+        if (overdueNotifications.length > 0) {
+            await prisma.notification.createMany({
+                data: overdueNotifications,
+            });
+        }
+
         return NextResponse.json(tasks);
     } catch (error) {
         console.error('[TASKS_GET]', error);

@@ -29,6 +29,26 @@ export function Sidebar() {
         },
     });
 
+    // 1. Сначала получаем basic user info (включая ID)
+    const { data: basicUserInfo } = useQuery({
+        queryKey: ["basicUserInfo"],
+        queryFn: async () => {
+            const response = await axios.get("/api/users/me");
+            return response.data;
+        },
+    });
+
+    // 2. Затем получаем полную информацию о пользователе, используя ID
+    const { data: fullUserInfo } = useQuery({
+        queryKey: ["fullUserInfo", basicUserInfo?.id],
+        queryFn: async () => {
+            if (!basicUserInfo?.id) return null;
+            const response = await axios.get(`/api/users/${basicUserInfo.id}`);
+            return response.data;
+        },
+        enabled: !!basicUserInfo?.id, // Запрос выполнится только когда есть ID
+    });
+
     const menuItems = [
         { href: "/notifications", icon: <BellIcon />, text: "Уведомления" },
         { onClick: openTaskCreationModal, icon: <PlusIcon />, text: "Новая задача" },
@@ -61,12 +81,18 @@ export function Sidebar() {
                   }))),
             ],
         },
-        {
-            title: "Команды",
-            icon: <UserGroupIcon />,
-            items: [{ href: "/teams", text: "Все команды" }],
-        },
+        // {
+        //     title: "Команды",
+        //     icon: <UserGroupIcon />,
+        //     items: [{ href: "/teams", text: "Все команды" }],
+        // },
     ];
+
+    // Формируем имя пользователя
+    const getUserName = () => {
+        if (!fullUserInfo) return "Загрузка...";
+        return [fullUserInfo.name, fullUserInfo.surname].filter(Boolean).join(" ") || fullUserInfo.login;
+    };
 
     return (
       <>
@@ -86,7 +112,10 @@ export function Sidebar() {
                     />
                   ))}
               </nav>
-              <Avatar username="Буба" avatarUrl="" />
+              <Avatar
+                  username={getUserName()}
+                  avatarUrl={fullUserInfo?.avatar_url || ""}
+              />
           </aside>
           <ProjectCreationModal isOpen={isProjectCreationModalOpen} onClose={closeProjectCreationModal} />
       </>

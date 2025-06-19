@@ -9,11 +9,43 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         const currentUser = await getCurrentUser();
         if (!currentUser) return NextResponse.json({ error: 'Необходима авторизация' }, { status: 401 });
 
+        const taskId = Number(params.id);
         const { priority } = await req.json();
-        const updated = await prisma.task.update({
-            where: { id: Number(params.id) },
-            data: { priority },
+
+        // Get the original task to compare changes
+        const originalTask = await prisma.task.findUnique({
+            where: { id: taskId },
+            include: {
+                executor: true,
+                project: true,
+            }
         });
+
+        if (!originalTask) {
+            return NextResponse.json({ error: 'Задача не найдена' }, { status: 404 });
+        }
+
+        const updated = await prisma.task.update({
+            where: { id: taskId },
+            data: { priority },
+            include: {
+                executor: true,
+                project: true,
+            }
+        });
+
+        // Create notification for priority change
+        if (priority !== originalTask.priority) {
+            await prisma.notification.create({
+                data: {
+                    user_id: originalTask.executor_id,
+                    message: `Приоритет задачи изменен: "${originalTask.priority}" → "${priority}"`,
+                    task_id: taskId,
+                    project_id: originalTask.project_id,
+                }
+            });
+        }
+
         return NextResponse.json(updated);
     } catch (error) {
         console.error('[TASK_PRIORITY_PUT]', error);

@@ -5,6 +5,7 @@ import axios from "axios";
 import FilteredTaskPage from "@/components/task/FilteredTaskPage";
 import { useModalStore } from "@/store/useModalStore";
 import { use } from "react";
+import { getProjectColor } from "@/utils/projectColors";
 
 const ProjectPage = ({ params }: { params: Promise<{ id: string }> }) => {
 	const { id: projectId } = use(params);
@@ -29,7 +30,7 @@ const ProjectPage = ({ params }: { params: Promise<{ id: string }> }) => {
 			<div>
 				<h1>
 					Доска{" "}
-					<span className="bg-[#FEF08A] p-2 text-xl rounded-full">
+					<span className={`${getProjectColor(project)} p-2 text-xl rounded-full`}>
             {project.name}
           </span>
 				</h1>
